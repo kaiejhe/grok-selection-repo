@@ -1,6 +1,6 @@
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
-#include <mach/mach_vm.h>
+#include <mach/vm_map.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -21,12 +21,12 @@ struct DecodedString {
 };
 
 bool safeRead(uintptr_t address, void *destination, size_t size) {
-    mach_vm_size_t copied = 0;
-    const kern_return_t result = mach_vm_read_overwrite(
+    vm_size_t copied = 0;
+    const kern_return_t result = vm_read_overwrite(
         mach_task_self(),
-        static_cast<mach_vm_address_t>(address),
-        static_cast<mach_vm_size_t>(size),
-        reinterpret_cast<mach_vm_address_t>(destination),
+        static_cast<vm_address_t>(address),
+        static_cast<vm_size_t>(size),
+        reinterpret_cast<vm_address_t>(destination),
         &copied
     );
     return result == KERN_SUCCESS && copied == size;
