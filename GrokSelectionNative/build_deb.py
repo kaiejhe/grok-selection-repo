@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import argparse
+import bz2
 import gzip
+import hashlib
 import io
+import lzma
+import shutil
 import struct
 import tarfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -87,10 +92,109 @@ def ar_member(name: str, content: bytes) -> bytes:
     return header + content + (b"\n" if len(content) % 2 else b"")
 
 
+def digest(data: bytes, algorithm: str) -> str:
+    return hashlib.new(algorithm, data).hexdigest()
+
+
+def release_lines(paths: list[Path], algorithm: str) -> list[str]:
+    return [
+        f" {digest(path.read_bytes(), algorithm)}"
+        f" {path.stat().st_size:16d} {path.name}"
+        for path in paths
+    ]
+
+
+def update_repo(repo_root: Path, deb: Path) -> None:
+    repo_root = repo_root.resolve()
+    debs = repo_root / "debs"
+    debs.mkdir(parents=True, exist_ok=True)
+    for old_deb in debs.glob(f"{PACKAGE_ID}_*_iphoneos-arm64.deb"):
+        old_deb.unlink()
+
+    destination = debs / deb.name
+    shutil.copy2(deb, destination)
+    deb_data = destination.read_bytes()
+    packages_data = (
+        CONTROL.decode().strip()
+        + "\n"
+        + f"Filename: debs/{destination.name}\n"
+        + f"Size: {len(deb_data)}\n"
+        + f"MD5sum: {digest(deb_data, 'md5')}\n"
+        + f"SHA1: {digest(deb_data, 'sha1')}\n"
+        + f"SHA256: {digest(deb_data, 'sha256')}\n"
+        + f"SHA512: {digest(deb_data, 'sha512')}\n\n"
+    ).encode()
+
+    packages = repo_root / "Packages"
+    packages.write_bytes(packages_data)
+    (repo_root / "Packages.gz").write_bytes(
+        gzip.compress(packages_data, compresslevel=9, mtime=0)
+    )
+    (repo_root / "Packages.bz2").write_bytes(
+        bz2.compress(packages_data, compresslevel=9)
+    )
+    (repo_root / "Packages.xz").write_bytes(
+        lzma.compress(packages_data, preset=9)
+    )
+
+    indexes = [
+        repo_root / "Packages",
+        repo_root / "Packages.gz",
+        repo_root / "Packages.bz2",
+        repo_root / "Packages.xz",
+    ]
+    date = datetime.now(timezone.utc).strftime(
+        "%a, %d %b %Y %H:%M:%S +0000"
+    )
+    release = [
+        "Origin: Adin",
+        "Label: Adin Repo",
+        "Suite: stable",
+        "Version: 1.0",
+        "Codename: adin",
+        "Architectures: iphoneos-arm64",
+        "Components: main",
+        "Description: Personal rootless Sileo repository",
+        f"Date: {date}",
+        "MD5Sum:",
+        *release_lines(indexes, "md5"),
+        "SHA1:",
+        *release_lines(indexes, "sha1"),
+        "SHA256:",
+        *release_lines(indexes, "sha256"),
+        "SHA512:",
+        *release_lines(indexes, "sha512"),
+        "",
+    ]
+    (repo_root / "Release").write_text(
+        "\n".join(release), encoding="utf-8", newline="\n"
+    )
+
+    index = repo_root / "index.html"
+    if index.is_file():
+        text = index.read_text(encoding="utf-8")
+        text = text.replace(
+            "Grok Selection Detector 1.0.1",
+            "Grok Selection Detector 2.0.0 Native",
+        )
+        index.write_text(text, encoding="utf-8", newline="\n")
+
+    (repo_root / "THIRD_PARTY_NOTICES.txt").write_text(
+        "This package statically links the official Dobby library.\n\n"
+        "Dobby project:\nhttps://github.com/jmpews/Dobby\n\n"
+        "Dobby license:\n"
+        "https://github.com/jmpews/Dobby/blob/master/LICENSE\n\n"
+        "Dobby is distributed under the Apache License 2.0.\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dylib", required=True, type=Path)
     parser.add_argument("--output", default=Path("output"), type=Path)
+    parser.add_argument("--repo-root", type=Path)
     args = parser.parse_args()
 
     dylib = args.dylib.resolve().read_bytes()
@@ -119,6 +223,8 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     target = args.output / DEB_NAME
     target.write_bytes(package)
+    if args.repo_root is not None:
+        update_repo(args.repo_root, target)
     print(target)
     print(f"size={target.stat().st_size}")
 
