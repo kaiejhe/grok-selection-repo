@@ -1,0 +1,29 @@
+Origin: Adin
+Label: Adin Repo
+Suite: stable
+Version: 1.0
+Codename: adin
+Architectures: iphoneos-arm64
+Components: main
+Description: Personal rootless Sileo repository
+Date: Sat, 25 Jul 2026 15:36:30 +0000
+MD5Sum:
+ 15c6856c58e7d8fa920514de7c40b7a6              690 Packages
+ e7e5bb73cd1224a6e175d4c4db3887fd              478 Packages.gz
+ 3a93dd31f057781b5566868f0233e20e              512 Packages.bz2
+ 8c4671250ac1481e1cd05069f2835d83              544 Packages.xz
+SHA1:
+ 5acf0bff8f45cca907963f7411a6388e9477ae24              690 Packages
+ 26cbdab6932f9f638e7bdf12a4298094586d0d66              478 Packages.gz
+ 2689b6b67ff73118849098762fe4fbccea07d44d              512 Packages.bz2
+ af7397202d00352496805b424d0529885451a755              544 Packages.xz
+SHA256:
+ 1d497e5f3a2b25e8352e4d1259b0da1ea33cd12aa9071248397e8de0eef5f622              690 Packages
+ 7b76ef3cc47158abe71dfc9615530ea0a5d26c729a29b838463ef62d6a821f9d              478 Packages.gz
+ d1647a1a53e5395b32ef63ad84a00c77af166190ae4d7dde84ad508b397aa006              512 Packages.bz2
+ 51d1f34b477fe13a25115b40eed62c71876bf0e5dfdd9485ec778bcaac378c49              544 Packages.xz
+SHA512:
+ 86a98bb83f36430fc4d6ccc4587d0b85026b04f8df6b94c52fdb868f31e71617a5013e4ba74dcb8ee0ddac7fda3a16740420af708a23b968ed3738e131745ba7              690 Packages
+ af851e9118d58f8c9b4d72c931ea9d7f7ac4ad8436c1e76e51d047f51390fc7172f775956db5f10275185f28e9873cb0b030639128054eed80aa7aedd5dafb07              478 Packages.gz
+ 4696c9081403e7033d092d6796e1b837192c55d9ba3a0a6e47c3da7887317cce27861ed2c3a0ad6d766fcab6730fc3230097b8c70cb146ddd2b9ba3fd586591f              512 Packages.bz2
+ 481790df66beac366341f5f94d2d897fbfc1b194956027b7998ce43cdb2bd1497e5e32a8ffee91ba9b7b083ccde8bc8110f44c4ce13ae901f31d4fa47b7e0b70              544 Packages.xz

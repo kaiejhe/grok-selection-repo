@@ -1,0 +1,11 @@
+This repository distributes the official Frida Gadget binary, version 17.16.4.
+
+Frida project:
+https://github.com/frida/frida
+
+Frida license:
+https://github.com/frida/frida/blob/main/COPYING
+
+The Frida project is distributed under the wxWindows Library Licence,
+Version 3.1. No Frida source code or binary has been modified by this package.
+
