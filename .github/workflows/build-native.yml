@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: macos-15
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +60,8 @@ jobs:
           set -euo pipefail
           python3 GrokSelectionNative/build_deb.py \
             --dylib GrokSelectionNative/build/GrokSelectionNative.dylib \
-            --output GrokSelectionNative/output
+            --output GrokSelectionNative/output \
+            --repo-root .
           ls -lh GrokSelectionNative/output/*.deb
 
       - name: Upload deb artifact
@@ -69,3 +70,24 @@ jobs:
           name: grok-selection-native-2.0.0
           path: GrokSelectionNative/output/*.deb
           if-no-files-found: error
+
+      - name: Publish package to the Sileo repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            debs \
+            Packages \
+            Packages.gz \
+            Packages.bz2 \
+            Packages.xz \
+            Release \
+            index.html \
+            THIRD_PARTY_NOTICES.txt
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Publish Grok Selection Detector 2.0.0 native"
+          git push
