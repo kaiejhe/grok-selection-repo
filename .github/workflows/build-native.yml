@@ -1,0 +1,71 @@
+name: Build native rootless tweak
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "GrokSelectionNative/**"
+      - ".github/workflows/build-native.yml"
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the pinned Dobby iPhoneOS library
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L \
+            "https://github.com/jmpews/Dobby/releases/download/latest/dobby-iphoneos-all.tar.gz" \
+            -o dobby-iphoneos-all.tar.gz
+          echo "47d97e878acae82afdc094051147fb6485b53229bf2c7e01dd1f0a6b0dcf5650  dobby-iphoneos-all.tar.gz" \
+            | shasum -a 256 -c -
+          tar -xzf dobby-iphoneos-all.tar.gz
+
+      - name: Compile the native arm64 dylib
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          mkdir -p GrokSelectionNative/build
+          xcrun --sdk iphoneos clang++ \
+            -arch arm64 \
+            -isysroot "$SDK" \
+            -miphoneos-version-min=17.0 \
+            -std=c++17 \
+            -Os \
+            -fvisibility=hidden \
+            -fno-exceptions \
+            -fno-rtti \
+            -dynamiclib \
+            -I build/iphoneos \
+            GrokSelectionNative/Native.cpp \
+            build/iphoneos/arm64/libdobby.a \
+            -lc++ \
+            -Wl,-dead_strip \
+            -Wl,-install_name,/Library/MobileSubstrate/DynamicLibraries/GrokSelectionNative.dylib \
+            -o GrokSelectionNative/build/GrokSelectionNative.dylib
+          codesign --force --sign - GrokSelectionNative/build/GrokSelectionNative.dylib
+          file GrokSelectionNative/build/GrokSelectionNative.dylib
+          ls -lh GrokSelectionNative/build/GrokSelectionNative.dylib
+
+      - name: Build the rootless deb
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 GrokSelectionNative/build_deb.py \
+            --dylib GrokSelectionNative/build/GrokSelectionNative.dylib \
+            --output GrokSelectionNative/output
+          ls -lh GrokSelectionNative/output/*.deb
+
+      - name: Upload deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: grok-selection-native-2.0.0
+          path: GrokSelectionNative/output/*.deb
+          if-no-files-found: error
