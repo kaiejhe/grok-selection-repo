@@ -112,10 +112,6 @@ void GrokSelectionDiagnosticShow(const char *message) {
 
 __attribute__((constructor))
 static void installGrokSelectionFrida() {
-    GrokSelectionDiagnosticShow(
-        "第 1 层成功：ElleKit 已注入原生加载器，正在加载 Frida Gadget。"
-    );
-
     const char *path =
         "/var/jb/Library/MobileSubstrate/DynamicLibraries/"
         "GrokSelectionFrida.dylib";

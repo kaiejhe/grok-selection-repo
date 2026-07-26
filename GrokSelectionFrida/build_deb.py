@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 PACKAGE_ID = "com.adin.grokselection"
-PACKAGE_VERSION = "3.0.1"
+PACKAGE_VERSION = "3.0.2"
 GADGET_VERSION = "17.16.4"
 DEB_NAME = f"{PACKAGE_ID}_{PACKAGE_VERSION}_iphoneos-arm64.deb"
 PROJECT_DIR = Path(__file__).resolve().parent

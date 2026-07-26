@@ -70,7 +70,7 @@ jobs:
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: grok-selection-frida-3.0.1
+          name: grok-selection-frida-3.0.2
           path: GrokSelectionFrida/output/*.deb
           if-no-files-found: error
 
@@ -92,5 +92,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Publish Grok Selection Detector 3.0.1 diagnostics"
+          git commit -m "Publish Grok Selection Detector 3.0.2 diagnostics"
           git push
