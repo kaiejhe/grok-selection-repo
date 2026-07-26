@@ -3,12 +3,11 @@
 #include <mach/vm_map.h>
 #include <stdint.h>
 #include <string.h>
-
 #include "dobby.h"
 
 namespace {
 
-constexpr uintptr_t kFirstOffset = 0x22f6c38;
+constexpr uintptr_t kFirstOffset  = 0x22f6c38;
 constexpr uintptr_t kSecondOffset = 0x22fc3e8;
 
 constexpr char kSource[] = "grok.pro.monthly.30";
@@ -42,15 +41,15 @@ DecodedString decode(uint64_t a, uint64_t b) {
             return result;
         }
 
-        const uintptr_t object =
-            static_cast<uintptr_t>(b & 0x0000ffffffffffffULL);
-        const uintptr_t data = object + (top == 0xd0 ? 0x20 : 0x11);
+        const uintptr_t object = static_cast<uintptr_t>(b & 0x0000ffffffffffffULL);
+        const uintptr_t data   = object + (top == 0xd0 ? 0x20 : 0x11);
+
         if (!safeRead(data, result.bytes, static_cast<size_t>(length))) {
             return result;
         }
 
         result.length = static_cast<size_t>(length);
-        result.valid = true;
+        result.valid  = true;
         return result;
     }
 
@@ -60,17 +59,15 @@ DecodedString decode(uint64_t a, uint64_t b) {
             return result;
         }
 
-        for (size_t index = 0; index < 8; ++index) {
-            result.bytes[index] =
-                static_cast<char>((a >> (index * 8)) & 0xff);
+        for (size_t i = 0; i < 8; ++i) {
+            result.bytes[i] = static_cast<char>((a >> (i * 8)) & 0xff);
         }
-        for (size_t index = 0; index < 7; ++index) {
-            result.bytes[index + 8] =
-                static_cast<char>((b >> (index * 8)) & 0xff);
+        for (size_t i = 0; i < 7; ++i) {
+            result.bytes[i + 8] = static_cast<char>((b >> (i * 8)) & 0xff);
         }
 
         result.length = length;
-        result.valid = true;
+        result.valid  = true;
     }
 
     return result;
@@ -84,61 +81,64 @@ bool equals(const DecodedString &value, const char (&expected)[N]) {
            memcmp(value.bytes, expected, expectedLength) == 0;
 }
 
+// 核心替换逻辑（对应原来 JS 的 this.context[wantedA] = actualA）
 __attribute__((noinline))
-void checkSelection(
-    uint64_t actualA,
-    uint64_t actualB,
-    uint64_t wantedA,
-    uint64_t wantedB
-) {
-    const DecodedString wanted = decode(wantedA, wantedB);
-    const DecodedString actual = decode(actualA, actualB);
-    if (!equals(wanted, kSource) || !equals(actual, kTarget)) {
-        return;
-    }
-
+void doSubstitution(uint64_t *regA, uint64_t *regB,
+                    uint64_t actualA, uint64_t actualB) {
     //这里是判断---不要删除注释
-    __asm__ __volatile__("" ::: "memory");
+    *regA = actualA;
+    *regB = actualB;
 }
 
 void firstCallback(void *, DobbyRegisterContext *context) {
     const uint64_t actualA = context->general.regs.x0;
     const uint64_t actualB = context->general.regs.x1;
-    checkSelection(
-        actualA,
-        actualB,
-        context->general.regs.x24,
-        context->general.regs.x27
-    );
+    const uint64_t wantedA = context->general.regs.x24;
+    const uint64_t wantedB = context->general.regs.x27;
+
+    const DecodedString wanted = decode(wantedA, wantedB);
+    const DecodedString actual = decode(actualA, actualB);
+
+    if (!equals(wanted, kSource) || !equals(actual, kTarget)) {
+        return;
+    }
+
+    // 对应原来 JS：this.context.x24 = actualA; this.context.x27 = actualB;
+    doSubstitution(&context->general.regs.x24,
+                   &context->general.regs.x27,
+                   actualA, actualB);
 }
 
 void secondCallback(void *, DobbyRegisterContext *context) {
     const uint64_t actualA = context->general.regs.x0;
     const uint64_t actualB = context->general.regs.x1;
-    checkSelection(
-        actualA,
-        actualB,
-        context->general.regs.x25,
-        context->general.regs.x28
-    );
-}
+    const uint64_t wantedA = context->general.regs.x25;
+    const uint64_t wantedB = context->general.regs.x28;
 
-}  // namespace
+    const DecodedString wanted = decode(wantedA, wantedB);
+    const DecodedString actual = decode(actualA, actualB);
 
-__attribute__((constructor))
-static void installGrokSelectionHooks() {
-    const mach_header *mainImage = _dyld_get_image_header(0);
-    if (mainImage == nullptr) {
+    if (!equals(wanted, kSource) || !equals(actual, kTarget)) {
         return;
     }
 
-    const uintptr_t base = reinterpret_cast<uintptr_t>(mainImage);
-    DobbyInstrument(
-        reinterpret_cast<void *>(base + kFirstOffset),
-        firstCallback
-    );
-    DobbyInstrument(
-        reinterpret_cast<void *>(base + kSecondOffset),
-        secondCallback
-    );
+    // 对应原来 JS：this.context.x25 = actualA; this.context.x28 = actualB;
+    doSubstitution(&context->general.regs.x25,
+                   &context->general.regs.x28,
+                   actualA, actualB);
+}
+
+} // namespace
+
+__attribute__((constructor))
+static void installGrokLegacySelectionHooks() {
+    const mach_header *header = _dyld_get_image_header(0);
+    if (header == nullptr) {
+        return;
+    }
+
+    const uintptr_t base = reinterpret_cast<uintptr_t>(header);
+
+    DobbyInstrument(reinterpret_cast<void *>(base + kFirstOffset),  firstCallback);
+    DobbyInstrument(reinterpret_cast<void *>(base + kSecondOffset), secondCallback);
 }
