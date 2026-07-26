@@ -1,9 +1,7 @@
-This package statically links the official Dobby library.
+This package includes the official Frida Gadget 17.16.4 binary.
 
-Dobby project:
-https://github.com/jmpews/Dobby
+Frida project:
+https://github.com/frida/frida
 
-Dobby license:
-https://github.com/jmpews/Dobby/blob/master/LICENSE
-
-Dobby is distributed under the Apache License 2.0.
+Frida license:
+https://github.com/frida/frida/blob/main/COPYING
