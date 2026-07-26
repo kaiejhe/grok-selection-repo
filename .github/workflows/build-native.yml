@@ -67,7 +67,7 @@ jobs:
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: grok-selection-native-2.0.0
+          name: grok-selection-native-2.0.1
           path: GrokSelectionNative/output/*.deb
           if-no-files-found: error
 
@@ -89,5 +89,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Publish Grok Selection Detector 2.0.0 native"
+          git commit -m "Publish Grok Selection Detector 2.0.1 native"
           git push

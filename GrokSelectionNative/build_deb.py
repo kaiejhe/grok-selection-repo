@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 PACKAGE_ID = "com.adin.grokselection"
-PACKAGE_VERSION = "2.0.0"
+PACKAGE_VERSION = "2.0.1"
 DEB_NAME = f"{PACKAGE_ID}_{PACKAGE_VERSION}_iphoneos-arm64.deb"
 
 CONTROL = f"""Package: {PACKAGE_ID}
@@ -175,7 +175,11 @@ def update_repo(repo_root: Path, deb: Path) -> None:
         text = index.read_text(encoding="utf-8")
         text = text.replace(
             "Grok Selection Detector 1.0.1",
+            f"Grok Selection Detector {PACKAGE_VERSION} Native",
+        )
+        text = text.replace(
             "Grok Selection Detector 2.0.0 Native",
+            f"Grok Selection Detector {PACKAGE_VERSION} Native",
         )
         index.write_text(text, encoding="utf-8", newline="\n")
 
