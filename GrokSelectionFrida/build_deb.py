@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 PACKAGE_ID = "com.adin.grokselection"
-PACKAGE_VERSION = "3.0.0"
+PACKAGE_VERSION = "3.0.1"
 GADGET_VERSION = "17.16.4"
 DEB_NAME = f"{PACKAGE_ID}_{PACKAGE_VERSION}_iphoneos-arm64.deb"
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -26,14 +26,16 @@ INSTALL_DIR = (
 GADGET_NAME = "GrokSelectionFrida"
 GADGET_PATH = f"{INSTALL_DIR}/{GADGET_NAME}.dylib"
 CONFIG_PATH = f"{INSTALL_DIR}/{GADGET_NAME}.config"
-PLIST_PATH = f"{INSTALL_DIR}/{GADGET_NAME}.plist"
+LOADER_NAME = "GrokSelectionLoader"
+LOADER_PATH = f"{INSTALL_DIR}/{LOADER_NAME}.dylib"
+PLIST_PATH = f"{INSTALL_DIR}/{LOADER_NAME}.plist"
 SCRIPT_PATH = f"{INSTALL_DIR}/grok_selection.js"
 
 CONTROL = f"""Package: {PACKAGE_ID}
 Name: Grok Selection Detector
 Version: {PACKAGE_VERSION}
 Architecture: iphoneos-arm64
-Description: Autonomous Frida Gadget read-only detector for Grok 1.4.5 (4127).
+Description: Diagnostic Frida Gadget read-only detector for Grok 1.4.5 (4127).
 Maintainer: adin
 Author: adin
 Section: Tweaks
@@ -279,7 +281,12 @@ def update_repo(repo_root: Path, deb: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--gadget-xz",
+        "--gadget",
+        required=True,
+        type=Path,
+    )
+    parser.add_argument(
+        "--loader",
         required=True,
         type=Path,
     )
@@ -291,10 +298,9 @@ def main() -> None:
     parser.add_argument("--repo-root", type=Path)
     args = parser.parse_args()
 
-    gadget = lzma.decompress(
-        args.gadget_xz.resolve().read_bytes()
-    )
+    gadget = args.gadget.resolve().read_bytes()
     verify_gadget(gadget)
+    loader = args.loader.resolve().read_bytes()
     script = (
         PROJECT_DIR / "grok_selection.js"
     ).read_bytes()
@@ -305,6 +311,7 @@ def main() -> None:
     data_archive = tar_gz([
         (GADGET_PATH, gadget, 0o755),
         (CONFIG_PATH, CONFIG, 0o644),
+        (LOADER_PATH, loader, 0o755),
         (PLIST_PATH, PLIST, 0o644),
         (SCRIPT_PATH, script, 0o644),
     ])

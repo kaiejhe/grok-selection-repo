@@ -2,6 +2,35 @@
 
 const SOURCE = 'grok.pro.monthly.30';
 const TARGET = 'grok.pro.monthly.30.legacy';
+const diagnosticEvents = new Set();
+let showDiagnostic = () => {};
+
+function configureDiagnostics() {
+  const loader = Process.getModuleByName(
+    'GrokSelectionLoader.dylib'
+  );
+  const showAddress = loader.getExportByName(
+    'GrokSelectionDiagnosticShow'
+  );
+  const nativeShow = new NativeFunction(
+    showAddress,
+    'void',
+    ['pointer']
+  );
+
+  showDiagnostic = message => {
+    nativeShow(Memory.allocUtf8String(message));
+  };
+}
+
+function showOnce(event, message) {
+  if (diagnosticEvents.has(event)) {
+    return;
+  }
+
+  diagnosticEvents.add(event);
+  showDiagnostic(message);
+}
 
 function decode(aPtr, bPtr) {
   try {
@@ -45,9 +74,14 @@ function decode(aPtr, bPtr) {
   return null;
 }
 
-function install(app, offset, wantedA, wantedB) {
+function install(app, offset, wantedA, wantedB, hookName) {
   Interceptor.attach(app.base.add(offset), {
     onEnter() {
+      showOnce(
+        hookName + '-entered',
+        hookName + ' 已首次进入，偏移 Hook 正常。'
+      );
+
       const actualA = this.context.x0;
       const actualB = this.context.x1;
       const wanted = decode(
@@ -59,6 +93,11 @@ function install(app, offset, wantedA, wantedB) {
       if (wanted !== SOURCE || actual !== TARGET) {
         return;
       }
+
+      showOnce(
+        hookName + '-matched',
+        hookName + ' 判断条件已首次命中。'
+      );
 
       //这里是判断---不要删除注释
       send({
@@ -74,20 +113,47 @@ function install(app, offset, wantedA, wantedB) {
 
 rpc.exports = {
   init() {
-    const app = Process.getModuleByName('GrokApp');
+    configureDiagnostics();
 
-    install(app, 0x22f6c38, 'x24', 'x27');
-    install(app, 0x22fc3e8, 'x25', 'x28');
+    try {
+      const app = Process.getModuleByName('GrokApp');
 
-    send({
-      type: 'ready',
-      mode: 'temporary-legacy-selection',
-      source: SOURCE,
-      target: TARGET,
-      noMemoryWrite: true,
-      noNetworkInterception: true,
-      cancelAtAppleSheet: true
-    });
+      install(
+        app,
+        0x22f6c38,
+        'x24',
+        'x27',
+        'Hook 1'
+      );
+      install(
+        app,
+        0x22fc3e8,
+        'x25',
+        'x28',
+        'Hook 2'
+      );
+
+      showOnce(
+        'ready',
+        '第 2 层成功：Frida JS 已初始化，两个 Hook 已安装。'
+      );
+
+      send({
+        type: 'ready',
+        mode: 'temporary-legacy-selection',
+        source: SOURCE,
+        target: TARGET,
+        noMemoryWrite: true,
+        noNetworkInterception: true,
+        cancelAtAppleSheet: true
+      });
+    } catch (error) {
+      showOnce(
+        'init-error',
+        'Frida JS 初始化失败：' + error.message
+      );
+      throw error;
+    }
   },
 
   dispose() {}

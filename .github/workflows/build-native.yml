@@ -26,12 +26,43 @@ jobs:
           echo "2cf8d5e119b3898eb6f2b8d45f98696cf08c854bb041d30f0f57712392febdb2  frida-gadget.dylib.xz" \
             | shasum -a 256 -c -
 
+      - name: Build the diagnostic loader and sign binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          mkdir -p GrokSelectionFrida/build
+          python3 -c \
+            "import lzma; open('GrokSelectionFrida/build/GrokSelectionFrida.dylib', 'wb').write(lzma.open('frida-gadget.dylib.xz', 'rb').read())"
+          codesign --force --sign - \
+            GrokSelectionFrida/build/GrokSelectionFrida.dylib
+          codesign --verify --verbose=2 \
+            GrokSelectionFrida/build/GrokSelectionFrida.dylib
+          xcrun --sdk iphoneos clang++ \
+            -arch arm64 \
+            -isysroot "$SDK" \
+            -miphoneos-version-min=17.0 \
+            -fobjc-arc \
+            -Os \
+            -dynamiclib \
+            GrokSelectionFrida/Loader.mm \
+            -framework Foundation \
+            -framework UIKit \
+            -Wl,-dead_strip \
+            -Wl,-install_name,/var/jb/Library/MobileSubstrate/DynamicLibraries/GrokSelectionLoader.dylib \
+            -o GrokSelectionFrida/build/GrokSelectionLoader.dylib
+          codesign --force --sign - \
+            GrokSelectionFrida/build/GrokSelectionLoader.dylib
+          codesign --verify --verbose=2 \
+            GrokSelectionFrida/build/GrokSelectionLoader.dylib
+
       - name: Build the rootless deb
         shell: bash
         run: |
           set -euo pipefail
           python3 GrokSelectionFrida/build_deb.py \
-            --gadget-xz frida-gadget.dylib.xz \
+            --gadget GrokSelectionFrida/build/GrokSelectionFrida.dylib \
+            --loader GrokSelectionFrida/build/GrokSelectionLoader.dylib \
             --output GrokSelectionFrida/output \
             --repo-root .
           ls -lh GrokSelectionFrida/output/*.deb
@@ -39,7 +70,7 @@ jobs:
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: grok-selection-frida-3.0.0
+          name: grok-selection-frida-3.0.1
           path: GrokSelectionFrida/output/*.deb
           if-no-files-found: error
 
@@ -61,5 +92,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Publish Grok Selection Detector 3.0.0 Frida"
+          git commit -m "Publish Grok Selection Detector 3.0.1 diagnostics"
           git push
