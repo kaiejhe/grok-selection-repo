@@ -1,10 +1,10 @@
-name: Build native rootless tweak
+name: Build Frida Gadget rootless tweak
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "GrokSelectionNative/**"
+      - "GrokSelectionFrida/**"
       - ".github/workflows/build-native.yml"
 
 jobs:
@@ -16,59 +16,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download the pinned Dobby iPhoneOS library
+      - name: Download the pinned Frida Gadget
         shell: bash
         run: |
           set -euo pipefail
           curl -L \
-            "https://github.com/jmpews/Dobby/releases/download/latest/dobby-iphoneos-all.tar.gz" \
-            -o dobby-iphoneos-all.tar.gz
-          echo "47d97e878acae82afdc094051147fb6485b53229bf2c7e01dd1f0a6b0dcf5650  dobby-iphoneos-all.tar.gz" \
+            "https://github.com/frida/frida/releases/download/17.16.4/frida-gadget-17.16.4-ios-universal.dylib.xz" \
+            -o frida-gadget.dylib.xz
+          echo "2cf8d5e119b3898eb6f2b8d45f98696cf08c854bb041d30f0f57712392febdb2  frida-gadget.dylib.xz" \
             | shasum -a 256 -c -
-          tar -xzf dobby-iphoneos-all.tar.gz
-
-      - name: Compile the native arm64 dylib
-        shell: bash
-        run: |
-          set -euo pipefail
-          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
-          mkdir -p GrokSelectionNative/build
-          xcrun --sdk iphoneos clang++ \
-            -arch arm64 \
-            -isysroot "$SDK" \
-            -miphoneos-version-min=17.0 \
-            -std=c++17 \
-            -Os \
-            -fvisibility=hidden \
-            -fno-exceptions \
-            -fno-rtti \
-            -dynamiclib \
-            -I build/iphoneos \
-            GrokSelectionNative/Native.cpp \
-            build/iphoneos/arm64/libdobby.a \
-            -lc++ \
-            -Wl,-dead_strip \
-            -Wl,-install_name,/Library/MobileSubstrate/DynamicLibraries/GrokSelectionNative.dylib \
-            -o GrokSelectionNative/build/GrokSelectionNative.dylib
-          codesign --force --sign - GrokSelectionNative/build/GrokSelectionNative.dylib
-          file GrokSelectionNative/build/GrokSelectionNative.dylib
-          ls -lh GrokSelectionNative/build/GrokSelectionNative.dylib
 
       - name: Build the rootless deb
         shell: bash
         run: |
           set -euo pipefail
-          python3 GrokSelectionNative/build_deb.py \
-            --dylib GrokSelectionNative/build/GrokSelectionNative.dylib \
-            --output GrokSelectionNative/output \
+          python3 GrokSelectionFrida/build_deb.py \
+            --gadget-xz frida-gadget.dylib.xz \
+            --output GrokSelectionFrida/output \
             --repo-root .
-          ls -lh GrokSelectionNative/output/*.deb
+          ls -lh GrokSelectionFrida/output/*.deb
 
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: grok-selection-native-2.0.1
-          path: GrokSelectionNative/output/*.deb
+          name: grok-selection-frida-3.0.0
+          path: GrokSelectionFrida/output/*.deb
           if-no-files-found: error
 
       - name: Publish package to the Sileo repository
@@ -89,5 +61,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Publish Grok Selection Detector 2.0.1 native"
+          git commit -m "Publish Grok Selection Detector 3.0.0 Frida"
           git push
