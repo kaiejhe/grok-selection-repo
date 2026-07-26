@@ -1,6 +1,6 @@
 Package: com.adin.grokselection
 Name: Grok Selection Detector
-Version: 3.0.1
+Version: 3.0.2
 Architecture: iphoneos-arm64
 Description: Diagnostic Frida Gadget read-only detector for Grok 1.4.5 (4127).
 Maintainer: adin
@@ -9,10 +9,10 @@ Section: Tweaks
 Priority: optional
 Depends: firmware (>= 17.0), ellekit
 Tag: role::tweak
-Filename: debs/com.adin.grokselection_3.0.1_iphoneos-arm64.deb
-Size: 17014662
-MD5sum: 924c95b40afec11db3ddaadbf4c0c831
-SHA1: fff5110ef32dea2176543058e048e1fdc0794673
-SHA256: dd8e33bc32dcf5b3ca804875902742bac438915a24889737f43570d06437b299
-SHA512: fe25a629d57ebc09b3121cb8d546a36e7ddd1775d86ea274fb413359996294b3d18c97fe77de94389a4ca8a9e455481658d25866f2bd2a8afde2cb20d292b848
+Filename: debs/com.adin.grokselection_3.0.2_iphoneos-arm64.deb
+Size: 17014570
+MD5sum: f1dd1c107f8b65ce7aff8a1bfeaac713
+SHA1: 3f8d84aa98b50105013895a39249e7b1e2fd4e0b
+SHA256: 123eb875ae2dbdcad51ec841e9492b6740684a016e05cc9ca5857c81f4e7a661
+SHA512: 4b98362474be95383e71a3515b27d8c28260187e01d6e2a5b2f0ee5281bdee4972c696e55bcfcae0fa8e5b22c31b6c90eef7f70bd3356781a77d602177a2e204
 
