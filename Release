@@ -6,24 +6,24 @@ Codename: adin
 Architectures: iphoneos-arm64
 Components: main
 Description: Personal rootless Sileo repository
-Date: Sun, 02 Aug 2026 03:36:20 +0000
+Date: Sun, 02 Aug 2026 03:40:56 +0000
 MD5Sum:
- b21fe4d6cc0c13623a3ee64314962c7f              729 Packages
- 84d34016a3119df3f0f3aec0c730ffc0              506 Packages.gz
- af5b59f9926f5b3248a4117eb6fd632d              548 Packages.bz2
- 8e1d1d2d29a9f9ac68d5e0a9104e7a4d              576 Packages.xz
+ a20197c207e4bcc1eeedb62ae7bf59a4              729 Packages
+ 626020e190e36b76647de7c3d09041cc              507 Packages.gz
+ e6ccec78a5b2d10f69f6d3314b204f63              552 Packages.bz2
+ 1c159e75c19e408e7f7294b66b59c447              580 Packages.xz
 SHA1:
- 3859e78deed848307df03df3730f4021adefb012              729 Packages
- 019077b3d62ca771afe2a7fef22f19f2f0fee177              506 Packages.gz
- dad593432e23f2bc583b7fdc5767a971e494819d              548 Packages.bz2
- 385c486ea5a753b1fcd25261d970ca8152a0cd39              576 Packages.xz
+ a8f8ea9331cd7839a3440944634af3e6352149fe              729 Packages
+ f393d144296e63601fd64e4d7258fff69a783cea              507 Packages.gz
+ c7fb95dce15a02788adf433a05195c10b1302736              552 Packages.bz2
+ b4e7e60db4e663d1629375ed360bfdcb03b4c1f9              580 Packages.xz
 SHA256:
- bedfdae16c0d25d8ac2eec28201772447b00039ae0f8004a51057f3b17118ca6              729 Packages
- da525c2f8c809920ddbcea390f220c62cb2b211182613fd30e2fcc79a472be9a              506 Packages.gz
- 210304c64b535d5ae472c56798f2544a36276156fbb8dce7cdc2c5a59f72a1bf              548 Packages.bz2
- fc0c1093a5d17ade456676e1a8821a8785dd15cded7d2951eac83d38bdbb9c91              576 Packages.xz
+ a66c2d5832911261b67d47515af20b93bfb7668c0266226bc6ec1eadcc9b23f0              729 Packages
+ b9c40a632d54c1a283a7c6e52506f4b4591526ef2a8c4313a8ed796bdd7be0bb              507 Packages.gz
+ 9473b08fab5c89e0bcf5cc36c05ee32b65cd50da0979ff7c3397501908fa9410              552 Packages.bz2
+ 3bc32dbf836edd5ac226fa219a51619ed0e42085779a186dd9d75fc5b501d4ae              580 Packages.xz
 SHA512:
- 92421a5bd8bcbc8565067cd856cf60ea2416752f4f0c64c18275fbb3ba20392a21e4e157d157655ff0b881a9ba0b8de878eac660f90c9bb78173578123017ebc              729 Packages
- c45a8da86da123d9ba5f5fd012cbe25149c239d6016dc8abd85a947d12a4d04fa78e664455baab10a7e3b5c7f5b0ab091a03d1909a9fa261e1723953312d4de7              506 Packages.gz
- 3d03ea69ac7beb96abefe7875ad6a0fcf2169b18d2d440de954dcb1e673195bb54d2b78e94c53597660b73c10583a3d1f17f1036d4af5bc53c213c921137f484              548 Packages.bz2
- 7aafcf56f4f23e9fac0750b794eceaa0337412fe52e3189f91741fec2dde015784e60af035100d6c79c1357e0dc95e0bcdb99a2d4f7adfbd32c28448c071a1d1              576 Packages.xz
+ aeaae6a95bd02e364adac2bf2518c5b9a21ca36fb9400dc950c6f5b7a80c2964392e21ebfd2dbe30d0a88701b2af193b800d512fcb8806e85d5403bfda94dfd5              729 Packages
+ db91fd1baab9349f5f2cac759d2c4cd467c23aa8d077f942d10d076aca29ce53952982c1e9958ee40fe42a4ecf0556a4126cd5dbf6f924367294bd7773a23b32              507 Packages.gz
+ e95c1567dcd8c2ebf21e5bbf87d49eba279a3c742fe739d0a9d75c78e637da52a642976f9c6825f6c6b5f24bdf89144d05aec048885929259b2dac2d9c390bc7              552 Packages.bz2
+ fda2dd3d72951fd36d63a983c4081f8197e3da6d01d1bce08ec0cc8a6c69bef51d81dff94e44a9c43e5e07a75a846d322acde4bf0c83463b72551db4e3a335ad              580 Packages.xz

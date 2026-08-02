@@ -1,4 +1,4 @@
-# GrokSelectionFrida — 通用 Gadget 壳（3.0.2+）
+# GrokSelectionFrida — 通用 Gadget 壳（3.0.3+）
 
 Rootless + ElleKit + Frida Gadget。  
 **Gadget 只加载 bootstrap**；你的业务逻辑放在可替换的 `user_script.js`。
@@ -53,7 +53,7 @@ Rootless + ElleKit + Frida Gadget。
 
 ## 和旧 3.0.1 的区别
 
-| | 3.0.1 | 3.0.2 通用壳 |
+| | 3.0.1 | 3.0.3 通用壳 |
 |--|--------|----------------|
 | Gadget 入口脚本 | `grok_selection.js`（业务+壳混在一起） | `GrokSelectionBootstrap.js` |
 | 换逻辑 | 必须符合 `rpc.exports.init` | 覆盖 `user_script.js` 即可 |

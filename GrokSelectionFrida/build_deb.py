@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 PACKAGE_ID = "com.adin.grokselection"
-PACKAGE_VERSION = "3.0.2"
+PACKAGE_VERSION = "3.0.3"
 GADGET_VERSION = "17.16.4"
 DEB_NAME = f"{PACKAGE_ID}_{PACKAGE_VERSION}_iphoneos-arm64.deb"
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -255,7 +255,16 @@ def update_repo(repo_root: Path, deb: Path) -> None:
 
     index = repo_root / "index.html"
     if index.is_file():
-        text = index.read_text(encoding="utf-8")
+        raw = index.read_bytes()
+        text: str | None = None
+        for encoding in ("utf-8", "utf-8-sig", "utf-16", "utf-16-le"):
+            try:
+                text = raw.decode(encoding)
+                break
+            except UnicodeDecodeError:
+                continue
+        if text is None:
+            raise ValueError("Unable to decode index.html")
         text = re.sub(
             r"Grok Selection Detector [^<]+",
             (
