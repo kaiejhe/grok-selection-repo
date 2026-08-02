@@ -1,0 +1,13 @@
+{
+  "userScript": "/var/jb/Library/MobileSubstrate/DynamicLibraries/user_script.js",
+  "logPath": "/var/jb/var/mobile/Library/Logs/GrokSelectionFrida.log",
+  "bootDelayMs": 400,
+  "waitModule": "GrokApp",
+  "waitModuleTimeoutMs": 20000,
+  "waitModulePollMs": 100,
+  "bridgeConsole": true,
+  "alertOnError": true,
+  "alertOnReady": false,
+  "alertOnLoad": false,
+  "maxAlertLength": 350
+}

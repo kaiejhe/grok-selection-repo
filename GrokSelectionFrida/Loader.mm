@@ -3,12 +3,14 @@
 
 #include <dlfcn.h>
 
-namespace {
+static NSMutableArray<NSString *> *gMessages;
+static BOOL gShowingMessage;
 
-NSMutableArray<NSString *> *gMessages;
-BOOL gShowingMessage;
+// Optional delay before dlopen(Gadget). 0 = immediate (default).
+// Heavy CLI-style scripts usually delay inside bootstrap.js instead.
+static constexpr int64_t kGadgetLoadDelayMs = 0;
 
-UIViewController *topViewController() {
+static UIViewController *topViewController() {
     UIWindow *window = nil;
 
     for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
@@ -46,9 +48,9 @@ UIViewController *topViewController() {
     return controller;
 }
 
-void presentNextMessage();
+static void presentNextMessage();
 
-void retryPresenting() {
+static void retryPresenting() {
     dispatch_after(
         dispatch_time(DISPATCH_TIME_NOW, 500 * NSEC_PER_MSEC),
         dispatch_get_main_queue(),
@@ -58,7 +60,7 @@ void retryPresenting() {
     );
 }
 
-void presentNextMessage() {
+static void presentNextMessage() {
     if (gShowingMessage || gMessages.count == 0) {
         return;
     }
@@ -93,7 +95,23 @@ void presentNextMessage() {
     [controller presentViewController:alert animated:YES completion:nil];
 }
 
-} // namespace
+static void loadGadget() {
+    const char *path =
+        "/var/jb/Library/MobileSubstrate/DynamicLibraries/"
+        "GrokSelectionFrida.dylib";
+    void *handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+
+    if (handle == nullptr) {
+        const char *error = dlerror();
+        NSString *message = [
+            NSString stringWithFormat:
+                @"Frida Gadget 加载失败：%s",
+                error == nullptr ? "未知错误" : error
+        ];
+        extern void GrokSelectionDiagnosticShow(const char *message);
+        GrokSelectionDiagnosticShow(message.UTF8String);
+    }
+}
 
 extern "C" __attribute__((visibility("default")))
 void GrokSelectionDiagnosticShow(const char *message) {
@@ -110,20 +128,30 @@ void GrokSelectionDiagnosticShow(const char *message) {
     });
 }
 
+extern "C" __attribute__((visibility("default")))
+void GrokSelectionLog(const char *message) {
+    if (message == nullptr) {
+        NSLog(@"[GrokSelection] (null)");
+        return;
+    }
+    NSLog(@"[GrokSelection] %s", message);
+}
+
 __attribute__((constructor))
 static void installGrokSelectionFrida() {
-    const char *path =
-        "/var/jb/Library/MobileSubstrate/DynamicLibraries/"
-        "GrokSelectionFrida.dylib";
-    void *handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
-
-    if (handle == nullptr) {
-        const char *error = dlerror();
-        NSString *message = [
-            NSString stringWithFormat:
-                @"Frida Gadget 加载失败：%s",
-                error == nullptr ? "未知错误" : error
-        ];
-        GrokSelectionDiagnosticShow(message.UTF8String);
+    if (kGadgetLoadDelayMs <= 0) {
+        loadGadget();
+        return;
     }
+
+    dispatch_after(
+        dispatch_time(
+            DISPATCH_TIME_NOW,
+            kGadgetLoadDelayMs * NSEC_PER_MSEC
+        ),
+        dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0),
+        ^{
+            loadGadget();
+        }
+    );
 }

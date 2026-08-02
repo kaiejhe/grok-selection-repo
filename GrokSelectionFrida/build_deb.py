@@ -29,13 +29,20 @@ CONFIG_PATH = f"{INSTALL_DIR}/{GADGET_NAME}.config"
 LOADER_NAME = "GrokSelectionLoader"
 LOADER_PATH = f"{INSTALL_DIR}/{LOADER_NAME}.dylib"
 PLIST_PATH = f"{INSTALL_DIR}/{LOADER_NAME}.plist"
-SCRIPT_PATH = f"{INSTALL_DIR}/grok_selection.js"
+
+# Generic shell: Gadget always loads bootstrap; user replaces user_script.js
+BOOTSTRAP_NAME = "GrokSelectionBootstrap.js"
+BOOTSTRAP_PATH = f"{INSTALL_DIR}/{BOOTSTRAP_NAME}"
+USER_SCRIPT_NAME = "user_script.js"
+USER_SCRIPT_PATH = f"{INSTALL_DIR}/{USER_SCRIPT_NAME}"
+SHELL_CONFIG_NAME = "shell_config.json"
+SHELL_CONFIG_PATH = f"{INSTALL_DIR}/{SHELL_CONFIG_NAME}"
 
 CONTROL = f"""Package: {PACKAGE_ID}
 Name: Grok Selection Detector
 Version: {PACKAGE_VERSION}
 Architecture: iphoneos-arm64
-Description: Diagnostic Frida Gadget read-only detector for Grok 1.4.5 (4127).
+Description: Generic Frida Gadget shell for Grok (bootstrap + swappable user_script). Compatible with CLI-style Frida scripts.
 Maintainer: adin
 Author: adin
 Section: Tweaks
@@ -59,17 +66,17 @@ PLIST = b"""<?xml version="1.0" encoding="UTF-8"?>
 </plist>
 """
 
-CONFIG = b"""{
-  "interaction": {
+CONFIG = f"""{{
+  "interaction": {{
     "type": "script",
-    "path": "/var/jb/Library/MobileSubstrate/DynamicLibraries/grok_selection.js",
-    "on_change": "reload"
-  },
+    "path": "/var/jb/Library/MobileSubstrate/DynamicLibraries/{BOOTSTRAP_NAME}",
+    "on_change": "ignore"
+  }},
   "teardown": "minimal",
   "runtime": "qjs",
   "code_signing": "optional"
-}
-"""
+}}
+""".encode()
 
 
 def tar_gz(files: list[tuple[str, bytes, int]]) -> bytes:
@@ -301,9 +308,10 @@ def main() -> None:
     gadget = args.gadget.resolve().read_bytes()
     verify_gadget(gadget)
     loader = args.loader.resolve().read_bytes()
-    script = (
-        PROJECT_DIR / "grok_selection.js"
-    ).read_bytes()
+
+    bootstrap = (PROJECT_DIR / BOOTSTRAP_NAME).read_bytes()
+    user_script = (PROJECT_DIR / USER_SCRIPT_NAME).read_bytes()
+    shell_config = (PROJECT_DIR / SHELL_CONFIG_NAME).read_bytes()
 
     control_archive = tar_gz([
         ("control", CONTROL, 0o644),
@@ -313,7 +321,9 @@ def main() -> None:
         (CONFIG_PATH, CONFIG, 0o644),
         (LOADER_PATH, loader, 0o755),
         (PLIST_PATH, PLIST, 0o644),
-        (SCRIPT_PATH, script, 0o644),
+        (BOOTSTRAP_PATH, bootstrap, 0o644),
+        (USER_SCRIPT_PATH, user_script, 0o644),
+        (SHELL_CONFIG_PATH, shell_config, 0o644),
     ])
 
     package = bytearray(b"!<arch>\n")
